@@ -2,6 +2,8 @@
   "name": "MultilingualCorporaExtractor",
   "version": "0.0.1",
   "dependencies": {
-    "node.io": "latest"
+    "request": "^2.34.0",
+    "cheerio": "^0.16.0",
+    "async": "^0.8.0"
   }
 }
