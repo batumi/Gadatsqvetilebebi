@@ -42,11 +42,11 @@ var processDOCFile = function(originalfilename, next) {
 
   if (originalfilename.indexOf('/')) {
     path = originalfilename.substring(0, originalfilename.lastIndexOf('/'));
-    convertCommand = convertCommand + ' --outdir ' + path + ' ';
+    convertCommand = convertCommand + ' --outdir "' + path + '" ';
     // originalfilename.replace(path + '/', '');
-    console.log(convertCommand + originalfilename);
+    console.log(convertCommand + '"'+ originalfilename.replace(/ /g, '\\ ') + '"');
   }
-  childProcess.exec(convertCommand + originalfilename, function(error, stdout, stderr) {
+  childProcess.exec(convertCommand + originalfilename.replace(/ /g, '\\ '), function(error, stdout, stderr) {
     if (error !== null) {
       console.log('Doc conversion error ' + originalfilename);
       console.log(error);
@@ -57,7 +57,7 @@ var processDOCFile = function(originalfilename, next) {
 
       var htmlFilename = originalfilename.replace('.doc', '.html').replace('.docx', '.html');
       console.log(htmlFilename);
-
+      
       fs.readFile(htmlFilename, 'utf8', function(err, data) {
         processHTMLFile(err, null, data, htmlFilename.replace('.html', '.txt'), next);
       });
