@@ -17,7 +17,7 @@ console.log(urls);
 var processHTMLFile = function(err, response, body, resultfilename, next) {
   var result;
   if (err) {
-    result = 'Not found';
+    result = '  Not found';
   } else {
     // console.log(body);
     var $ = cheerio.load(body);
@@ -26,9 +26,9 @@ var processHTMLFile = function(err, response, body, resultfilename, next) {
   console.log(result);
   fs.writeFile(resultfilename, result, 'utf8', function(err, data) {
     if (err) {
-      console.log('Error writing file ' + resultfilename);
+      console.log('  Error writing file ' + resultfilename);
     } else {
-      console.log('Wrote ' + resultfilename);
+      console.log('  Wrote ' + resultfilename);
     }
   });
   next();
@@ -37,27 +37,28 @@ var processHTMLFile = function(err, response, body, resultfilename, next) {
 
 var processDOCFile = function(originalfilename, next) {
   var result,
-    convertCommand = 'soffice --headless --convert-to html:html ',
+    convertCommand = ' soffice --headless --convert-to html:html ',
     path;
 
-  if (originalfilename.indexOf('/')) {
+  console.log('  originalfilename: ' + originalfilename);
+  if (originalfilename.indexOf('/') > -1) {
     path = originalfilename.substring(0, originalfilename.lastIndexOf('/'));
-    convertCommand = convertCommand + ' --outdir "' + path + '" ';
-    // originalfilename.replace(path + '/', '');
-    console.log(convertCommand + '"'+ originalfilename.replace(/ /g, '\\ ') + '"');
+    convertCommand = convertCommand + ' --outdir ' + path + ' ';
+    // originalfilename.replace(path + '/', ''); .replace(/\(/g, '\\(').replace(/\)/g, '\\)')
+    console.log(convertCommand + '' + originalfilename + '');
   }
-  childProcess.exec(convertCommand + originalfilename.replace(/ /g, '\\ '), function(error, stdout, stderr) {
+  childProcess.exec(convertCommand + originalfilename, function(error, stdout, stderr) {
     if (error !== null) {
-      console.log('Doc conversion error ' + originalfilename);
+      console.log('  Doc conversion error ' + originalfilename);
       console.log(error);
-      console.log('Doc conversion stderr ' + stderr);
+      console.log('  Doc conversion stderr ' + stderr);
       next();
     } else {
-      console.log('Doc conversion stdout ' + stdout);
+      console.log('  Doc conversion stdout ' + stdout);
 
-      var htmlFilename = originalfilename.replace('.doc', '.html').replace('.docx', '.html');
+      var htmlFilename = originalfilename.replace(/\\ /g, ' ').replace('.docx', '.html').replace('.doc', '.html');
       console.log(htmlFilename);
-      
+
       fs.readFile(htmlFilename, 'utf8', function(err, data) {
         processHTMLFile(err, null, data, htmlFilename.replace('.html', '.txt'), next);
       });
@@ -96,7 +97,8 @@ async.eachLimit(urls, concurrency, function(url, next) {
     });
   } else {
     if (url.indexOf('.doc') === url.length - 4 || url.indexOf('.docx') === url.length - 5) {
-      processDOCFile(url, next);
+      processDOCFile(url.replace(/ /g, '\\ ').replace(/\(/g, '\(').replace(/\)/g, '\)'), next);
+      // processDOCFile(encodeURIComponent(url), next);
     } else {
       fs.readFile(url, 'utf8', function(err, data) {
         processHTMLFile(err, null, data, fileBaseName + '.txt', next);
