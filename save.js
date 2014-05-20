@@ -5,6 +5,7 @@ var request = require('request'),
   async = require('async'),
   fs = require('fs'),
   childProcess = require('child_process'),
+  pdfText = require('pdf-text'),
   format = require('util').format,
   siteSpecificExtractor = require('./constitutionalExtractor').extract;
 
@@ -34,6 +35,38 @@ var processHTMLFile = function(err, response, body, resultfilename, next) {
   next();
 };
 
+
+var processPDFFile = function(originalfilename, next) {
+  var result = ' No text';
+
+  console.log('  originalfilename: ' + originalfilename);
+  pdfText(originalfilename, function(error, chunks) {
+    //chunks is an array of strings 
+    //loosely corresponding to text objects within the pdf
+    if (error !== null) {
+      console.log('  PDF conversion error ' + originalfilename);
+      console.log(error);
+      next();
+    } else {
+      console.log('  PDF conversion completed ');
+      if (chunks && chunks.length > 0) {
+        result = chunks.join('\n\n\n');
+      }
+      var resultfilename = originalfilename.replace('.pdf', '.txt');
+      console.log(resultfilename);
+      console.log(result);
+      fs.writeFile(resultfilename, result, 'utf8', function(err, data) {
+        if (err) {
+          console.log('  Error writing file ' + resultfilename);
+        } else {
+          console.log('  Wrote ' + resultfilename);
+        }
+      });
+      next();
+
+    }
+  });
+};
 
 var processDOCFile = function(originalfilename, next) {
   var result,
@@ -121,7 +154,9 @@ async.eachLimit(urls, concurrency, function(url, next) {
       }
     });
   } else {
-    if (url.indexOf('.doc') === url.length - 4) {
+    if (url.indexOf('.pdf') === url.length - 4) {
+      processPDFFile(url, next);
+    } else if (url.indexOf('.doc') === url.length - 4) {
       processDOCFile(url.replace(/ /g, '\\ ').replace(/\(/g, '\\(').replace(/\)/g, '\\)'), next);
     } else if (url.indexOf('.docx') === url.length - 5) {
       processDOCFile(url.replace(/ /g, '\\ ').replace(/\(/g, '\\(').replace(/\)/g, '\\)'), next);
