@@ -23,7 +23,7 @@
     "node": ">= 0.6.0"
   },
   "scripts": {
-    "test": "grunt jasmine-node"
+    "test": "jasmine-node test"
   },
   "dependencies": {
     "request": "^2.34.0",
