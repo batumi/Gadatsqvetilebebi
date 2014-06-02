@@ -1,6 +1,6 @@
 'use strict';
 
-var KartuliImporter = require('../../lib/kartuli/KartuliImporter.js');
+var KartuliImporter = require('../../lib/kartuli/KartuliImporter.js').KartuliImporter;
 
 /*
   ======== A Handy Little Jasmine Reference ========
@@ -47,6 +47,26 @@ describe('lib/KartuliImporter', function() {
 
   it('should load', function() {
     expect(KartuliImporter).toBeDefined();
+  });
+
+  it('should provide a read hook', function() {
+    var importer = new KartuliImporter();
+    expect(importer.readUrl).toBeDefined();
+  });
+
+  it('should provide a preprocess hook', function() {
+    var importer = new KartuliImporter();
+    expect(importer.preprocess).toBeDefined();
+  });
+
+  it('should provide a import hook', function() {
+    var importer = new KartuliImporter();
+    expect(importer.import).toBeDefined();
+  });
+
+  it('should process multiple files in parallel', function() {
+    var importer = new KartuliImporter();
+    expect(importer.files).toBeDefined();
   });
 
 });

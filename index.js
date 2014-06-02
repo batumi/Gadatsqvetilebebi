@@ -7,13 +7,15 @@ var request = require('request'),
   childProcess = require('child_process'),
   pdfText = require('pdf-text'),
   format = require('util').format,
-  siteSpecificExtractor = require('./lib/generic/genericExtractor').extract;
+  siteSpecificExtractor = require('./lib/generic/GenericExtractor').extract,
+  LanguageSpecificImporter = require('./lib/kartuli/KartuliImporter').KartuliImporter;
 
 var concurrency = 2;
 
 var urls = process.argv.splice(2);
 console.log(urls);
 
+var importer = new LanguageSpecificImporter();
 
 var processHTMLFile = function(err, response, body, resultfilename, next) {
   var result;
@@ -160,9 +162,28 @@ async.eachLimit(urls, concurrency, function(url, next) {
       processDOCFile(url.replace(/ /g, '\\ ').replace(/\(/g, '\\(').replace(/\)/g, '\\)'), next);
     } else if (url.indexOf('.docx') === url.length - 5) {
       processDOCFile(url.replace(/ /g, '\\ ').replace(/\(/g, '\\(').replace(/\)/g, '\\)'), next);
-    } else {
+    } else if (url.indexOf('.html') === url.length - 5) {
       fs.readFile(url, 'utf8', function(err, data) {
         processHTMLFile(err, null, data, fileBaseName + '.txt', next);
+      });
+    } else if (url.indexOf('.txt') === url.length - 4) {
+      importer.readUrl({
+        url: url
+      }).preprocess({
+        transliterate: true,
+        joinLines: true,
+        writePreprocessedFileFunction: function(filename, body) {
+          fs.writeFile(filename, body, 'utf8', function(err, data) {
+            if (err) {
+              console.log('Error writing file ' + filename);
+              next();
+              return;
+            }
+          });
+        }
+      }).import({
+        dryRun: true,
+        fromPreprocessedFile: true
       });
     }
   }
