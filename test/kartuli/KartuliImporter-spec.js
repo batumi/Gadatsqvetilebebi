@@ -1,7 +1,7 @@
 'use strict';
 
 var KartuliImporter = require('../../lib/kartuli/KartuliImporter.js').KartuliImporter;
-
+var fs = require('fs');
 /*
   ======== A Handy Little Jasmine Reference ========
 https://github.com/pivotal/jasmine/wiki/Matchers
@@ -43,30 +43,27 @@ https://github.com/pivotal/jasmine/wiki/Matchers
 
 */
 
+var specIsRunningTooLong = 5000;
+
 describe('lib/KartuliImporter', function() {
+  var corpus,
+    importer,
+    localUri = process.env.FIELDDB_HOME + '/FieldDB/sample_data/orthography.txt',
+    remoteUri = 'https://raw.githubusercontent.com/OpenSourceFieldlinguistics/FieldDB/master/sample_data/orthography.txt';
+
+  beforeEach(function() {
+    corpus = {};
+    importer = new KartuliImporter({
+      corpus: corpus
+    });
+  });
 
   it('should load', function() {
     expect(KartuliImporter).toBeDefined();
   });
 
-  it('should provide a read hook', function() {
-    var importer = new KartuliImporter();
-    expect(importer.readUrl).toBeDefined();
-  });
-
   it('should provide a preprocess hook', function() {
-    var importer = new KartuliImporter();
     expect(importer.preprocess).toBeDefined();
-  });
-
-  it('should provide a import hook', function() {
-    var importer = new KartuliImporter();
-    expect(importer.import).toBeDefined();
-  });
-
-  it('should process multiple files in parallel', function() {
-    var importer = new KartuliImporter();
-    expect(importer.files).toBeDefined();
   });
 
 });
