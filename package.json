@@ -1,10 +1,43 @@
 {
-  "name": "MultilingualCorporaExtractor",
-  "version": "0.0.1",
+  "name": "Gadatsqvetilebebi",
+  "description": "A web corpora extractor/importer for public legal decisions in Kartuli",
+  "version": "0.1.0",
+  "homepage": "https://github.com/batumi/Gadatsqvetilebebi",
+  "author": {
+    "name": "batumi",
+    "email": "batumi-devs@googlegroups.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/batumi/Gadatsqvetilebebi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/batumi/Gadatsqvetilebebi/issues"
+  },
+  "licenses": [{
+    "type": "Apache 2.0",
+    "url": "https://github.com/batumi/Gadatsqvetilebebi/blob/master/LICENSE"
+  }],
+  "main": "lib/Gadatsqvetilebebi",
+  "engines": {
+    "node": ">= 0.6.0"
+  },
+  "scripts": {
+    "test": "grunt jasmine-node"
+  },
   "dependencies": {
     "request": "^2.34.0",
     "cheerio": "^0.16.0",
     "async": "^0.8.0",
     "pdf-text": "^0.4.0"
-  }
+  },
+  "devDependencies": {
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-jasmine-node": "~0.2.0",
+    "grunt-contrib-watch": "~0.4.0",
+    "grunt": "~0.4.2"
+  },
+  "keywords": []
 }

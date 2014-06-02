@@ -7,7 +7,7 @@ var request = require('request'),
   childProcess = require('child_process'),
   pdfText = require('pdf-text'),
   format = require('util').format,
-  siteSpecificExtractor = require('./constitutionalExtractor').extract;
+  siteSpecificExtractor = require('./lib/generic/genericExtractor').extract;
 
 var concurrency = 2;
 
@@ -41,7 +41,7 @@ var processPDFFile = function(originalfilename, next) {
 
   console.log('  originalfilename: ' + originalfilename);
   pdfText(originalfilename, function(error, chunks) {
-    //chunks is an array of strings 
+    //chunks is an array of strings
     //loosely corresponding to text objects within the pdf
     if (error !== null) {
       console.log('  PDF conversion error ' + originalfilename);
