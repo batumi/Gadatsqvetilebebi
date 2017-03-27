@@ -14,10 +14,12 @@
   "bugs": {
     "url": "https://github.com/batumi/Gadatsqvetilebebi/issues"
   },
-  "licenses": [{
-    "type": "Apache 2.0",
-    "url": "https://github.com/batumi/Gadatsqvetilebebi/blob/master/LICENSE"
-  }],
+  "licenses": [
+    {
+      "type": "Apache 2.0",
+      "url": "https://github.com/batumi/Gadatsqvetilebebi/blob/master/LICENSE"
+    }
+  ],
   "main": "lib/Gadatsqvetilebebi",
   "engines": {
     "node": ">= 0.6.0"
@@ -26,10 +28,13 @@
     "test": "jasmine-node test"
   },
   "dependencies": {
-    "request": "^2.34.0",
-    "cheerio": "^0.16.0",
     "async": "^0.8.0",
-    "pdf-text": "^0.4.0"
+    "cheerio": "^0.16.0",
+    "fielddb": "^4.4.22",
+    "pdf-text": "^0.4.0",
+    "request": "^2.34.0",
+    "translitit-mkhedruli-georgian-to-ipa": "^1.0.0",
+    "translitit-mkhedruli-georgian-to-latin": "^1.0.0"
   },
   "devDependencies": {
     "grunt-contrib-concat": "~0.3.0",
