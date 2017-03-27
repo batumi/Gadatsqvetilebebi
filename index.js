@@ -1,21 +1,26 @@
 #!/usr/local/bin/node
 
-var request = require('request'),
-  cheerio = require('cheerio'),
-  async = require('async'),
-  fs = require('fs'),
-  childProcess = require('child_process'),
-  pdfText = require('pdf-text'),
-  format = require('util').format,
-  siteSpecificExtractor = require('./lib/generic/GenericExtractor').extract,
-  LanguageSpecificImporter = require('./lib/kartuli/KartuliImporter').KartuliImporter;
+var request = require('request');
+var cheerio = require('cheerio');
+var async = require('async');
+var fs = require('fs');
+var childProcess = require('child_process');
+var pdfText = require('pdf-text');
+var format = require('util').format;
+var siteSpecificExtractor = require('./lib/generic/GenericExtractor').extract;
+var LanguageSpecificImporter = require('./lib/kartuli/KartuliImporter').KartuliImporter;
+var Corpus = require('fielddb/api/corpus/Corpus').Corpus;
 
 var concurrency = 2;
 
 var urls = process.argv.splice(2);
 console.log(urls);
 
-var importer = new LanguageSpecificImporter();
+var corpus = new Corpus(Corpus.prototype.defaults);
+corpus.dbname = "temp-import";
+var importer = new LanguageSpecificImporter({
+  corpus: corpus
+});
 
 var processHTMLFile = function(err, response, body, resultfilename, next) {
   var result;
@@ -128,7 +133,7 @@ var processDOCXFile = function(originalfilename, next) {
   });
 };
 
-async.eachLimit(urls, concurrency, function(url, next) {
+async.mapLimit(urls, concurrency, function(url, next) {
   var filename = url.substring(url.lastIndexOf('/') + 1);
   var fileBaseName = filename.substring(0, filename.lastIndexOf('.'));
   var extension = filename.replace(fileBaseName, '');
@@ -168,16 +173,17 @@ async.eachLimit(urls, concurrency, function(url, next) {
       });
     } else if (url.indexOf('.txt') === url.length - 4) {
 
-      importer.addFileUrl({
-        url: url,
+      console.log('addFileUri', url)
+      var options = {
+        uri: url,
         readOptions: {
-          readFileFunction: function(callback) {
-            fs.readFile(url, 'utf8', callback);
+          readFileFunction: function(options, callback) {
+            fs.readFile(url, "utf8", callback);
           }
         },
         preprocessOptions: {
-          writePreprocessedFileFunction: function(filename, body, callback) {
-            fs.writeFile(filename, body, 'utf8', callback);
+          writePreprocessedFileFunction: function(options, callback) {
+            fs.writeFile(options.preprocessedUri, options.body, "utf8", callback);
           },
           transliterate: true,
           joinLines: true,
@@ -185,10 +191,14 @@ async.eachLimit(urls, concurrency, function(url, next) {
         importOptions: {
           dryRun: true,
           fromPreprocessedFile: true
-        },
-        next: next
-      });
+        }
+      };
 
+      importer.readUri(options).then(function(result){
+        console.log('done adding files', result.datum.orthography);
+      }).catch(function(err){
+        console.log('err adding files', err);
+      });
     }
   }
 });
