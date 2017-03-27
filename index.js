@@ -8,16 +8,29 @@ var childProcess = require('child_process');
 var pdfText = require('pdf-text');
 var format = require('util').format;
 var siteSpecificExtractor = require('./lib/generic/GenericExtractor').extract;
-var LanguageSpecificImporter = require('./lib/kartuli/KartuliImporter').KartuliImporter;
+var App = require('fielddb/api/app/App').App;
 var Corpus = require('fielddb/api/corpus/Corpus').Corpus;
+var LanguageSpecificImporter = require('./lib/kartuli/KartuliImporter').KartuliImporter;
+var transliterateToLatin = require('translitit-mkhedruli-georgian-to-latin');
+var transliterateToIPA = require('translitit-mkhedruli-georgian-to-ipa');
 
-var concurrency = 2;
+var concurrency = 10;
 
 var urls = process.argv.splice(2);
 console.log(urls);
 
+var app = new App({
+  user: {
+    username: process.env.USERNAME,
+    gravatar: '226b903027c34e84f97161ff7f3db1ae'
+  }
+});
+
 var corpus = new Corpus(Corpus.prototype.defaults);
-corpus.dbname = "temp-import";
+corpus.dbname = 'batumi-sarchelebi';
+if (process.env.CORPUS_URL) {
+  corpus.url = process.env.CORPUS_URL;
+}
 var importer = new LanguageSpecificImporter({
   corpus: corpus
 });
@@ -176,6 +189,7 @@ async.mapLimit(urls, concurrency, function(url, next) {
       console.log('addFileUri', url)
       var options = {
         uri: url,
+        id: url.substring(url.lastIndexOf('/') + 1, url.lastIndexOf('.')),
         readOptions: {
           readFileFunction: function(options, callback) {
             fs.readFile(url, "utf8", callback);
@@ -194,10 +208,23 @@ async.mapLimit(urls, concurrency, function(url, next) {
         }
       };
 
-      importer.readUri(options).then(function(result){
-        console.log('done adding files', result.datum.orthography);
-      }).catch(function(err){
+      importer.readUri(options).then(function(result) {
+        console.log(result.rawText.length);
+        return importer.preprocess(result);
+      }).then(function(result) {
+        console.log('done adding files', result.datum.orthography.substring(0, 200));
+        result.datum.utterance = result.datum.morphemes = transliterateToIPA(result.datum.orthography);
+        console.log('done adding files', result.datum.utterance.substring(0, 200));
+        
+        console.log('url', importer.corpus.url);
+        console.log('id', result.datum.id);
+        console.log('rev', result.datum.rev);
+        result.datum.corpus = corpus;
+        delete result.datum.tempId;
+        return result.datum.save().then(next).fail(next);
+      }).catch(function(err) {
         console.log('err adding files', err);
+        next();
       });
     }
   }
